@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Roadmap Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-primary:#ffffff;--bg-secondary:#f7f7f5;--bg-tertiary:#eeeee9;
+  --text-primary:#1a1a1a;--text-secondary:#6b6b6b;--text-tertiary:#9a9a9a;
+  --border-light:rgba(0,0,0,0.08);--border-med:rgba(0,0,0,0.14);
+  --radius:10px;--radius-lg:14px;
+  --font:'DM Sans',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;
+  --danger:#e24b4a;--danger-bg:#fcebeb;
+  --earth-900:#3B2F1E;--earth-700:#5C4A32;--earth-500:#8B7355;--earth-300:#C4AD8A;--earth-200:#D9CCAF;--earth-100:#EDE5D3;--earth-50:#F7F3EB;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg-primary:#1e1e1e;--bg-secondary:#262626;--bg-tertiary:#2c2c2c;
+    --text-primary:#e8e8e8;--text-secondary:#a0a0a0;--text-tertiary:#707070;
+    --border-light:rgba(255,255,255,0.08);--border-med:rgba(255,255,255,0.14);
+    --danger:#f09595;--danger-bg:#3a2020;
+    --earth-900:#EDE5D3;--earth-700:#D9CCAF;--earth-500:#C4AD8A;--earth-300:#8B7355;--earth-200:#5C4A32;--earth-100:#3B2F1E;--earth-50:#2A2218;
+  }
+}
+body{font-family:var(--font);color:var(--text-primary);background:var(--bg-secondary);min-height:100vh;padding:1.5rem}
+.app-shell{max-width:1400px;margin:0 auto}
+.app-title{font-size:20px;font-weight:600;margin-bottom:4px;letter-spacing:-0.3px}
+.app-subtitle{font-size:13px;color:var(--text-tertiary);margin-bottom:20px}
+
+/* Toolbar */
+.toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.toolbar button{font-size:13px;padding:7px 16px;border-radius:var(--radius);cursor:pointer;font-family:var(--font);font-weight:500;transition:all 0.15s}
+.btn-add{background:var(--text-primary);color:var(--bg-primary);border:none}
+.btn-add:hover{opacity:0.85;transform:scale(0.98)}
+.btn-ghost{background:transparent;border:1px solid var(--border-med);color:var(--text-secondary)}
+.btn-ghost:hover{background:var(--bg-tertiary);color:var(--text-primary)}
+.btn-icon{background:transparent;border:1px solid var(--border-med);color:var(--text-secondary);padding:7px 10px;font-size:14px;line-height:1}
+.btn-icon:hover{background:var(--bg-tertiary)}
+.btn-danger-sm{background:transparent;border:1px solid var(--border-light);color:var(--danger);font-size:12px;padding:5px 10px;border-radius:var(--radius)}
+.btn-danger-sm:hover{background:var(--danger-bg)}
+.spacer{flex:1}
+.year-nav{display:flex;align-items:center;gap:4px}
+.year-label{font-size:14px;font-weight:600;min-width:44px;text-align:center;letter-spacing:-0.3px}
+
+/* Legend / filters */
+.legend{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-secondary);cursor:pointer;padding:4px 10px;border-radius:20px;border:1px solid var(--border-light);transition:all 0.15s;user-select:none}
+.legend-item:hover{background:var(--bg-tertiary)}
+.legend-item.active{border-color:var(--border-med);background:var(--bg-primary);color:var(--text-primary);font-weight:500}
+.legend-item.dimmed{opacity:0.4}
+.legend-dot{width:8px;height:8px;border-radius:50%}
+.quarter-toggle{display:flex;gap:2px;background:var(--bg-tertiary);border-radius:var(--radius);padding:2px}
+.quarter-btn{font-size:12px;padding:5px 12px;border:none;border-radius:8px;cursor:pointer;font-family:var(--font);font-weight:500;color:var(--text-secondary);background:transparent;transition:all 0.15s}
+.quarter-btn:hover{color:var(--text-primary)}
+.quarter-btn.active{background:var(--bg-primary);color:var(--text-primary);box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+
+/* Grid header */
+.grid-header{display:grid;grid-template-columns:220px 100px minmax(0,1fr);background:var(--bg-tertiary);border-radius:var(--radius-lg) var(--radius-lg) 0 0;border:1px solid var(--border-light);border-bottom:none;position:sticky;top:0;z-index:10}
+.grid-header-label{padding:10px 16px;font-size:12px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px;border-right:1px solid var(--border-light)}
+.months-row{display:grid;grid-template-columns:repeat(12,1fr)}
+.month-cell{padding:10px 0;text-align:center;font-size:11px;font-weight:500;color:var(--text-tertiary);border-right:1px solid var(--border-light);letter-spacing:0.3px}
+.month-cell:last-child{border-right:none}
+
+/* Body */
+.grid-body{background:var(--bg-primary);border:1px solid var(--border-light);border-top:none;border-radius:0 0 var(--radius-lg) var(--radius-lg);overflow:hidden;position:relative}
+.theme-header{display:grid;grid-template-columns:220px 100px minmax(0,1fr);background:var(--bg-secondary);border-bottom:1px solid var(--border-light)}
+.theme-name-cell{padding:8px 16px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;border-right:1px solid var(--border-light);cursor:pointer;transition:background 0.1s}
+.theme-name-cell:hover{background:var(--bg-tertiary)}
+.theme-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.theme-name-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.project-row{display:grid;grid-template-columns:220px 100px minmax(0,1fr);border-bottom:1px solid var(--border-light);min-height:44px;transition:background 0.1s}
+.project-row:last-child{border-bottom:none}
+.project-row:hover{background:var(--bg-secondary)}
+.project-info{padding:8px 16px;font-size:13px;display:flex;align-items:center;gap:8px;border-right:1px solid var(--border-light);cursor:pointer;overflow:hidden}
+.project-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.project-status-cell{display:flex;align-items:center;justify-content:center;padding:8px 6px;border-right:1px solid var(--border-light)}
+.project-status{font-size:10px;padding:2px 7px;border-radius:20px;white-space:nowrap;font-weight:500}
+.status-select{font-size:10px;padding:3px 6px;border-radius:20px;font-weight:600;font-family:var(--font);border:none;cursor:pointer;appearance:none;-webkit-appearance:none;text-align:center;outline:none;transition:all 0.15s}
+.status-select:hover{filter:brightness(0.95);box-shadow:0 0 0 2px var(--border-med)}
+
+.timeline-area{position:relative;height:44px}
+.grid-lines{position:absolute;top:0;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(12,1fr);pointer-events:none}
+.grid-line{border-right:1px solid var(--border-light)}
+.grid-line:last-child{border-right:none}
+
+/* Bars */
+.bar{position:absolute;top:10px;height:24px;border-radius:12px;cursor:grab;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;min-width:20px;user-select:none;transition:box-shadow 0.15s,filter 0.15s;overflow:hidden}
+.bar:hover{box-shadow:0 2px 8px rgba(0,0,0,0.15);filter:brightness(1.05)}
+.bar[data-tip]:hover::after{content:attr(data-tip);position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--text-primary);color:var(--bg-primary);font-size:12px;font-weight:400;padding:6px 10px;border-radius:var(--radius);white-space:normal;max-width:260px;width:max-content;z-index:20;pointer-events:none;line-height:1.4;text-align:left}
+.bar.dragging{cursor:grabbing;opacity:0.92;box-shadow:0 4px 16px rgba(0,0,0,0.2)}
+.bar-handle{position:absolute;top:0;width:10px;height:100%;cursor:ew-resize;z-index:2}
+.bar-handle-l{left:-2px;border-radius:12px 0 0 12px}
+.bar-handle-r{right:-2px;border-radius:0 12px 12px 0}
+.bar-label{pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 14px;font-size:11px}
+
+/* Milestone diamonds */
+.milestone{position:absolute;top:12px;width:18px;height:18px;transform:rotate(45deg);border-radius:3px;cursor:pointer;transition:transform 0.15s}
+.milestone:hover{transform:rotate(45deg) scale(1.2)}
+
+/* Today line */
+.today-line{position:absolute;top:0;bottom:0;width:2px;z-index:5;pointer-events:none;background:var(--danger)}
+.today-tag{position:absolute;top:-18px;left:-12px;font-size:9px;color:var(--danger);font-weight:600;letter-spacing:0.5px;text-transform:uppercase}
+
+/* Empty state */
+.empty-state{text-align:center;padding:4rem 1rem;color:var(--text-tertiary);font-size:14px}
+.empty-state svg{margin-bottom:12px;opacity:0.3}
+
+/* Export area */
+.export-area{margin-top:12px;background:var(--bg-primary);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:16px}
+.export-area label{font-size:12px;color:var(--text-tertiary);margin-bottom:6px;display:block;font-weight:500;text-transform:uppercase;letter-spacing:0.4px}
+.export-area textarea{width:100%;height:140px;font-size:11px;font-family:var(--font-mono);background:var(--bg-secondary);border:1px solid var(--border-light);border-radius:var(--radius);padding:10px;color:var(--text-primary);resize:vertical}
+.export-actions{display:flex;gap:8px;margin-top:8px}
+
+/* Modal */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px);animation:fadeIn 0.15s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.modal{background:var(--bg-primary);border-radius:var(--radius-lg);border:1px solid var(--border-med);padding:1.5rem;width:440px;max-width:92vw;animation:slideUp 0.2s ease-out;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.modal h3{font-size:17px;font-weight:600;margin-bottom:18px;letter-spacing:-0.3px}
+.modal label{display:block;font-size:12px;color:var(--text-tertiary);margin-bottom:4px;margin-top:14px;font-weight:500;text-transform:uppercase;letter-spacing:0.3px}
+.modal label:first-of-type{margin-top:0}
+.modal input,.modal select,.modal textarea{width:100%;font-size:14px;font-family:var(--font);padding:8px 12px;border:1px solid var(--border-med);border-radius:var(--radius);background:var(--bg-primary);color:var(--text-primary);transition:border 0.15s}
+.modal input:focus,.modal select:focus,.modal textarea:focus{outline:none;border-color:var(--text-primary)}
+.modal textarea{min-height:60px;resize:vertical}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:22px;padding-top:16px;border-top:1px solid var(--border-light)}
+.color-picker{display:flex;gap:8px;margin-top:6px}
+.color-swatch{width:30px;height:30px;border-radius:50%;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;border:3px solid transparent}
+.color-swatch:hover{transform:scale(1.1)}
+.color-swatch.active{border-color:var(--text-primary);box-shadow:0 0 0 2px var(--bg-primary),0 0 0 4px var(--text-primary)}
+
+/* Status colors */
+.status-not-started{background:var(--bg-tertiary);color:var(--text-tertiary)}
+.status-in-progress{background:#E6F1FB;color:#0C447C}
+.status-at-risk{background:#FAEEDA;color:#633806}
+.status-complete{background:#EAF3DE;color:#27500A}
+@media(prefers-color-scheme:dark){
+  .status-not-started{background:var(--bg-tertiary);color:var(--text-tertiary)}
+  .status-in-progress{background:#0C447C;color:#B5D4F4}
+  .status-at-risk{background:#633806;color:#FAC775}
+  .status-complete{background:#27500A;color:#C0DD97}
+}
+
+/* View toggle */
+.view-toggle{display:flex;gap:2px;background:var(--bg-tertiary);border-radius:var(--radius);padding:2px}
+.view-btn{font-size:13px;padding:6px 16px;border:none;border-radius:8px;cursor:pointer;font-family:var(--font);font-weight:500;color:var(--text-secondary);background:transparent;transition:all 0.15s}
+.view-btn:hover{color:var(--text-primary)}
+.view-btn.active{background:var(--bg-primary);color:var(--text-primary);box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+
+/* Scorecard */
+.sc-wrap{background:var(--earth-50);border:1px solid var(--earth-200);border-radius:var(--radius-lg);overflow:hidden}
+.sc-header{background:var(--earth-900);color:var(--earth-50);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.sc-header-title{font-size:20px;font-weight:600;letter-spacing:-0.3px}
+.sc-header-meta{font-size:12px;opacity:0.7}
+.sc-indicators{display:flex;gap:6px;padding:12px 24px;background:var(--earth-100);border-bottom:1px solid var(--earth-200);flex-wrap:wrap}
+.sc-indicator{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:90px}
+.sc-indicator-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--earth-700)}
+.sc-indicator select{width:36px;height:36px;border-radius:50%;border:2px solid var(--earth-200);font-size:14px;font-weight:600;text-align:center;cursor:pointer;appearance:none;-webkit-appearance:none;padding:0;text-align-last:center}
+.sc-ind-g{background:#4CAF50;color:#fff;border-color:#388E3C}
+.sc-ind-a{background:#FFC107;color:#5D4037;border-color:#FFA000}
+.sc-ind-r{background:#F44336;color:#fff;border-color:#D32F2F}
+.sc-ind-na{background:var(--earth-100);color:var(--earth-500);border-color:var(--earth-200)}
+.sc-body{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.sc-col-left{border-right:1px solid var(--earth-200);padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+.sc-col-right{padding:16px 20px}
+.sc-section{border:1px solid var(--earth-200);border-radius:var(--radius);overflow:hidden}
+.sc-section-hdr{background:var(--earth-200);padding:6px 12px;font-size:12px;font-weight:600;color:var(--earth-900);text-transform:uppercase;letter-spacing:0.4px}
+.sc-section-body{padding:10px 12px;background:var(--bg-primary);min-height:80px}
+.sc-section-body textarea{width:100%;min-height:70px;border:none;background:transparent;font-family:var(--font);font-size:13px;color:var(--text-primary);resize:vertical;line-height:1.5;outline:none}
+.sc-table{width:100%;border-collapse:collapse;font-size:12px}
+.sc-table th{background:var(--earth-200);color:var(--earth-900);padding:7px 8px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.3px}
+.sc-table td{padding:7px 8px;border-bottom:1px solid var(--earth-100);color:var(--text-primary);vertical-align:middle}
+.sc-table tr:last-child td{border-bottom:none}
+.sc-table tr:hover td{background:var(--earth-50)}
+.sc-rag{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600;white-space:nowrap}
+.sc-nav{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.sc-nav-btn{background:transparent;border:1px solid var(--earth-300);color:var(--earth-700);padding:6px 10px;border-radius:var(--radius);cursor:pointer;font-family:var(--font);font-size:13px;font-weight:500;transition:all 0.15s}
+.sc-nav-btn:hover{background:var(--earth-100);color:var(--earth-900)}
+.sc-nav-label{font-size:14px;font-weight:600;color:var(--earth-900);min-width:180px;text-align:center}
+.sc-empty{text-align:center;padding:3rem;color:var(--earth-500);font-size:14px}
+</style>
+</head>
+<body>
+<div class="app-shell" id="app"></div>
+<script>
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const COLORS=[
+  {name:'Purple',bg:'#EEEDFE',bar:'#7F77DD',dark:'#534AB7',text:'#fff'},
+  {name:'Teal',bg:'#E1F5EE',bar:'#1D9E75',dark:'#0F6E56',text:'#fff'},
+  {name:'Coral',bg:'#FAECE7',bar:'#D85A30',dark:'#993C1D',text:'#fff'},
+  {name:'Pink',bg:'#FBEAF0',bar:'#D4537E',dark:'#993556',text:'#fff'},
+  {name:'Blue',bg:'#E6F1FB',bar:'#378ADD',dark:'#185FA5',text:'#fff'},
+  {name:'Green',bg:'#EAF3DE',bar:'#639922',dark:'#3B6D11',text:'#fff'},
+  {name:'Amber',bg:'#FAEEDA',bar:'#EF9F27',dark:'#854F0B',text:'#fff'},
+];
+const STATUSES=['Not started','In progress','At risk','Complete'];
+
+let S={year:2026,themes:[],modal:null,editCtx:null,showExport:false,drag:null,activeThemes:null,quarter:'all',view:'roadmap',scThemeIdx:0};
+const RAG_OPTIONS=[{v:'G',label:'G',cls:'sc-ind-g'},{v:'A',label:'A',cls:'sc-ind-a'},{v:'R',label:'R',cls:'sc-ind-r'},{v:'N/A',label:'—',cls:'sc-ind-na'}];
+const INDICATORS=['Scope','Schedule','Issues','Resources','Overall'];
+
+function uid(){return Math.random().toString(36).substr(2,9)}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function statusClass(s){return 'status-'+s.toLowerCase().replace(/\s+/g,'-')}
+
+function save(){try{localStorage.setItem('roadmap-v1',JSON.stringify({themes:S.themes,year:S.year}))}catch(e){}}
+function load(){
+  try{const d=JSON.parse(localStorage.getItem('roadmap-v1'));if(d){S.themes=d.themes||[];S.year=d.year||2026}}catch(e){}
+  S.themes.forEach(t=>{
+    if(!t.sc) t.sc={indicators:{Scope:'N/A',Schedule:'N/A',Issues:'N/A',Resources:'N/A',Overall:'N/A'},release:'',messages:'',risks:'',owner:'',lead1:'',lead2:'',reportDate:''};
+  });
+}
+
+function visibleMonths(){
+  if(S.quarter==='Q1') return [0,1,2];
+  if(S.quarter==='Q2') return [3,4,5];
+  if(S.quarter==='Q3') return [6,7,8];
+  if(S.quarter==='Q4') return [9,10,11];
+  return [0,1,2,3,4,5,6,7,8,9,10,11];
+}
+function toggleTheme(i){
+  if(!S.activeThemes){
+    S.activeThemes=new Set(S.themes.map((_,idx)=>idx));
+  }
+  if(S.activeThemes.has(i)){
+    S.activeThemes.delete(i);
+    if(S.activeThemes.size===0) S.activeThemes=null;
+  } else {
+    S.activeThemes.add(i);
+    if(S.activeThemes.size===S.themes.length) S.activeThemes=null;
+  }
+  render();
+}
+function setQuarter(q){S.quarter=q;render()}
+
+function render(){
+  const app=document.getElementById('app');
+  const hasData=S.themes.length>0&&S.themes.some((t,i)=>t.projects.length>0&&(!S.activeThemes||S.activeThemes.has(i)));
+  let h='';
+
+  h+=`<div class="app-title">Product roadmap</div>`;
+  h+=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div class="app-subtitle" style="margin-bottom:0">Drag bars to adjust timelines. Click to edit.</div>
+    <div class="view-toggle">
+      <button class="view-btn ${S.view==='roadmap'?'active':''}" onclick="setView('roadmap')">Roadmap</button>
+      <button class="view-btn ${S.view==='scorecard'?'active':''}" onclick="setView('scorecard')">Scorecard</button>
+    </div>
+  </div>`;
+
+  if(S.view==='scorecard'){
+    h+=renderScorecard();
+    if(S.modal) h+=renderModals();
+    app.innerHTML=h;
+    return;
+  }
+
+  // Toolbar
+  h+=`<div class="toolbar">
+    <button class="btn-add" onclick="openModal('addTheme')">+ Theme</button>
+    <button class="btn-ghost" onclick="openModal('addProject')">+ Project</button>
+    <div class="spacer"></div>
+    <div class="year-nav">
+      <button class="btn-icon" onclick="S.year--;save();render()">&#9664;</button>
+      <span class="year-label">${S.year}</span>
+      <button class="btn-icon" onclick="S.year++;save();render()">&#9654;</button>
+    </div>
+    <button class="btn-ghost" onclick="S.showExport=!S.showExport;render()">${S.showExport?'Close':'Export / Import'}</button>
+  </div>`;
+
+  // Theme filters
+  if(S.themes.length>0){
+    const allActive=!S.activeThemes||S.activeThemes.size===S.themes.length;
+    h+=`<div class="legend">${S.themes.map((t,i)=>{const c=COLORS[t.ci%COLORS.length];const on=!S.activeThemes||S.activeThemes.has(i);return`<div class="legend-item ${on?'active':'dimmed'}" onclick="toggleTheme(${i})"><div class="legend-dot" style="background:${c.bar}"></div>${esc(t.name)}</div>`}).join('')}</div>`;
+  }
+
+  // Quarter toggle
+  h+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <div class="quarter-toggle">
+      <button class="quarter-btn ${S.quarter==='all'?'active':''}" onclick="setQuarter('all')">Year</button>
+      <button class="quarter-btn ${S.quarter==='Q1'?'active':''}" onclick="setQuarter('Q1')">Q1</button>
+      <button class="quarter-btn ${S.quarter==='Q2'?'active':''}" onclick="setQuarter('Q2')">Q2</button>
+      <button class="quarter-btn ${S.quarter==='Q3'?'active':''}" onclick="setQuarter('Q3')">Q3</button>
+      <button class="quarter-btn ${S.quarter==='Q4'?'active':''}" onclick="setQuarter('Q4')">Q4</button>
+    </div>
+  </div>`;
+
+  // Export
+  if(S.showExport){
+    h+=`<div class="export-area">
+      <label>Save or load your roadmap</label>
+      <div class="export-actions">
+        <button class="btn-ghost" onclick="saveFile()">Save copy</button>
+        <button class="btn-add" onclick="document.getElementById('file-input').click()">Import file</button>
+        <input type="file" id="file-input" accept=".json" style="display:none" onchange="importFile(event)"/>
+        <span style="border-left:1px solid var(--border-light);height:24px"></span>
+        <button class="btn-ghost" onclick="publishSnapshot()" style="border-color:var(--earth-300);color:var(--earth-700)">Publish snapshot</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-tertiary);margin-top:6px">Publish snapshot exports a single HTML file with your data baked in — anyone can open it, no import needed.</div>
+    </div>`;
+  }
+
+  // Header
+  const vm=visibleMonths();
+  h+=`<div class="grid-header">
+    <div class="grid-header-label">Projects</div>
+    <div class="grid-header-label" style="text-align:center">Status</div>
+    <div class="months-row" style="grid-template-columns:repeat(${vm.length},1fr)">${vm.map(i=>`<div class="month-cell">${MONTHS[i]}</div>`).join('')}</div>
+  </div>`;
+
+  // Body
+  h+=`<div class="grid-body">`;
+
+  if(!hasData){
+    h+=`<div class="empty-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="4" x2="9" y2="10"/></svg>
+      <div>No projects yet</div>
+      <div style="font-size:12px;margin-top:4px">Add a theme, then add projects to build your roadmap</div>
+    </div>`;
+  } else {
+    const vm=visibleMonths();
+    const mStart=vm[0],mEnd=vm[vm.length-1];
+    const mSpan=mEnd-mStart+1;
+    S.themes.forEach((theme,ti)=>{
+      if(S.activeThemes&&!S.activeThemes.has(ti)) return;
+      if(theme.projects.length===0) return;
+      const c=COLORS[theme.ci%COLORS.length];
+      h+=`<div class="theme-header">
+        <div class="theme-name-cell" onclick="editTheme(${ti})">
+          <div class="theme-dot" style="background:${c.bar}"></div>
+          <span class="theme-name-text">${esc(theme.name)}</span>
+        </div><div style="border-right:1px solid var(--border-light)"></div><div></div>
+      </div>`;
+
+      theme.projects.forEach((p,pi)=>{
+        if(p.em<mStart||p.sm>mEnd) return;
+        const clampS=Math.max(p.sm,mStart);
+        const clampE=Math.min(p.em,mEnd);
+        const left=((clampS-mStart)/mSpan)*100;
+        const width=((clampE-clampS+1)/mSpan)*100;
+        const stCls=statusClass(p.status||'Not started');
+        h+=`<div class="project-row">
+          <div class="project-info" onclick="editProject(${ti},${pi})" title="${esc(p.desc||'')}">
+            <span class="project-name">${esc(p.name)}</span>
+          </div>
+          <div class="project-status-cell">
+            <select class="status-select ${stCls}" onchange="quickStatus(${ti},${pi},this.value)">
+              ${STATUSES.map(s=>`<option ${(p.status||'Not started')===s?'selected':''}>${s}</option>`).join('')}
+            </select>
+          </div>
+          <div class="timeline-area" id="tl-${ti}-${pi}">
+            <div class="grid-lines" style="grid-template-columns:repeat(${vm.length},1fr)">${Array(vm.length).fill('<div class="grid-line"></div>').join('')}</div>
+            <div class="bar" style="left:${left}%;width:${width}%;background:${c.bar};color:${c.text}" ${p.desc?`data-tip="${esc(p.desc)}"`:''}
+              onmousedown="dragStart(event,${ti},${pi},'move')" ontouchstart="dragStartT(event,${ti},${pi},'move')">
+              <div class="bar-handle bar-handle-l" onmousedown="event.stopPropagation();dragStart(event,${ti},${pi},'left')" ontouchstart="event.stopPropagation();dragStartT(event,${ti},${pi},'left')"></div>
+              <span class="bar-label">${esc(p.name)}</span>
+              <div class="bar-handle bar-handle-r" onmousedown="event.stopPropagation();dragStart(event,${ti},${pi},'right')" ontouchstart="event.stopPropagation();dragStartT(event,${ti},${pi},'right')"></div>
+            </div>
+          </div>
+        </div>`;
+      });
+    });
+  }
+
+  // Today line
+  const now=new Date();
+  if(now.getFullYear()===S.year){
+    const vm2=visibleMonths();
+    const mS2=vm2[0],mE2=vm2[vm2.length-1];
+    const curMonth=now.getMonth();
+    const dayInMonth=now.getDate();
+    const daysInMonth=new Date(now.getFullYear(),curMonth+1,0).getDate();
+    const exactMonth=curMonth+(dayInMonth/daysInMonth);
+    if(exactMonth>=mS2&&exactMonth<=mE2+1){
+      const pct=((exactMonth-mS2)/(mE2-mS2+1))*100;
+      h+=`<div class="today-line" style="left:calc(320px + (100% - 320px)*${pct/100})"><div class="today-tag">Today</div></div>`;
+    }
+  }
+
+  h+=`</div>`;
+
+  // Modal
+  h+=renderModals();
+
+  app.innerHTML=h;
+}
+
+function renderModals(){
+  let h='';
+  if(S.modal==='addTheme'||S.modal==='editTheme'){
+    const isE=S.modal==='editTheme';
+    const t=isE?S.themes[S.editCtx.ti]:null;
+    const ci=t?t.ci:0;
+    h+=modalHTML(`
+      <h3>${isE?'Edit theme':'New theme'}</h3>
+      <label>Name</label>
+      <input id="mtn" value="${esc(t?t.name:'')}" placeholder="e.g. Advisor Mobile Toolkit"/>
+      <label>Color</label>
+      <div class="color-picker">${COLORS.map((c,i)=>`<div class="color-swatch ${ci===i?'active':''}" style="background:${c.bar}" onclick="pickCI(${i})"></div>`).join('')}</div>
+      <input type="hidden" id="mtc" value="${ci}"/>
+      ${isE?`<label>Description</label><textarea id="mtd" placeholder="Brief description...">${esc(t.desc||'')}</textarea>`:''}
+      <div class="modal-actions">
+        ${isE?`<button class="btn-danger-sm" onclick="delTheme(${S.editCtx.ti})">Delete theme</button><div class="spacer"></div>`:''}
+        <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn-add" onclick="${isE?`saveTheme(${S.editCtx.ti})`:'addTheme()'}">${isE?'Save':'Add'}</button>
+      </div>
+    `);
+  }
+
+  if(S.modal==='addProject'||S.modal==='editProject'){
+    const isE=S.modal==='editProject';
+    const p=isE?S.themes[S.editCtx.ti].projects[S.editCtx.pi]:null;
+    h+=modalHTML(`
+      <h3>${isE?'Edit project':'New project'}</h3>
+      <label>Name</label>
+      <input id="mpn" value="${esc(p?p.name:'')}" placeholder="e.g. Pocket Portfolio Viewer"/>
+      <label>Theme</label>
+      <select id="mpt">${S.themes.length===0?'<option>No themes yet</option>':S.themes.map((t,i)=>`<option value="${i}" ${isE&&S.editCtx.ti===i?'selected':''}>${esc(t.name)}</option>`).join('')}</select>
+      <label>Description</label>
+      <textarea id="mpd" placeholder="What does this project deliver?">${esc(p?p.desc||'':'')}</textarea>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label>Start month</label><select id="mps">${MONTHS.map((m,i)=>`<option value="${i}" ${p&&p.sm===i?'selected':''}>${m}</option>`).join('')}</select></div>
+        <div><label>End month</label><select id="mpe">${MONTHS.map((m,i)=>`<option value="${i}" ${p&&p.em===i?'selected':((!p&&i===2)?'selected':'')}>${m}</option>`).join('')}</select></div>
+      </div>
+      <label>Status</label>
+      <select id="mpst">${STATUSES.map(s=>`<option ${p&&p.status===s?'selected':''}>${s}</option>`).join('')}</select>
+      <label>Owner</label>
+      <input id="mpo" value="${esc(p?p.owner||'':'')}" placeholder="e.g. Jane Doe"/>
+      <div class="modal-actions">
+        ${isE?`<button class="btn-danger-sm" onclick="delProject(${S.editCtx.ti},${S.editCtx.pi})">Delete</button><div class="spacer"></div>`:''}
+        <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn-add" onclick="${isE?`saveProject(${S.editCtx.ti},${S.editCtx.pi})`:'addProject()'}">${isE?'Save':'Add'}</button>
+      </div>
+    `);
+  }
+
+  return h;
+}
+
+function modalHTML(inner){return `<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal">${inner}</div></div>`}
+
+function setView(v){S.view=v;if(v==='scorecard')S._scInitialized=false;render()}
+
+function renderScorecard(){
+  let h='';
+  if(S.themes.length===0){
+    h+=`<div class="sc-empty">No themes yet. Switch to the Roadmap view to add themes and projects.</div>`;
+    return h;
+  }
+
+  // Default to oldest theme that has at least one non-complete project
+  if(S.scThemeIdx<0||S.scThemeIdx>=S.themes.length) S.scThemeIdx=0;
+  if(!S._scInitialized){
+    const activeIdx=S.themes.findIndex(t=>t.projects.length===0||t.projects.some(p=>(p.status||'Not started')!=='Complete'));
+    S.scThemeIdx=activeIdx>=0?activeIdx:0;
+    S._scInitialized=true;
+  }
+
+  const ti=S.scThemeIdx;
+  const theme=S.themes[ti];
+  if(!theme.sc) theme.sc={indicators:{Scope:'N/A',Schedule:'N/A',Issues:'N/A',Resources:'N/A',Overall:'N/A'},release:'',messages:'',risks:'',owner:'',lead1:'',reportDate:''};
+  const sc=theme.sc;
+  const c=COLORS[theme.ci%COLORS.length];
+
+  // Theme pill selector
+  h+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    <div style="display:flex;gap:4px;flex-wrap:wrap">${S.themes.map((t,i)=>{
+      const tc=COLORS[t.ci%COLORS.length];
+      const sel=i===ti;
+      return `<button onclick="S.scThemeIdx=${i};render()" style="font-size:12px;padding:5px 14px;border-radius:20px;cursor:pointer;font-family:var(--font);font-weight:${sel?'600':'500'};border:1.5px solid ${sel?tc.bar:'var(--border-med)'};background:${sel?tc.bar:'transparent'};color:${sel?'#fff':'var(--text-secondary)'};transition:all 0.15s">${esc(t.name)}</button>`;
+    }).join('')}</div>
+    <div class="spacer"></div>
+    <button class="btn-ghost" onclick="S.showExport=!S.showExport;render()">${S.showExport?'Close':'Export / Import'}</button>
+  </div>`;
+
+  if(S.showExport){
+    h+=`<div class="export-area" style="margin-bottom:14px">
+      <label>Save or load your roadmap</label>
+      <div class="export-actions">
+        <button class="btn-ghost" onclick="saveFile()">Save copy</button>
+        <button class="btn-add" onclick="document.getElementById('file-input').click()">Import file</button>
+        <input type="file" id="file-input" accept=".json" style="display:none" onchange="importFile(event)"/>
+        <span style="border-left:1px solid var(--border-light);height:24px"></span>
+        <button class="btn-ghost" onclick="publishSnapshot()" style="border-color:var(--earth-300);color:var(--earth-700)">Publish snapshot</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-tertiary);margin-top:6px">Publish snapshot exports a single HTML file with your data baked in — anyone can open it, no import needed.</div>
+    </div>`;
+  }
+
+  h+=`<div class="sc-wrap">`;
+
+  // Header bar
+  h+=`<div class="sc-header">
+    <div>
+      <div class="sc-header-title">${esc(theme.name)}</div>
+      ${theme.desc?`<div class="sc-header-meta">${esc(theme.desc)}</div>`:''}
+    </div>
+  </div>
+  <div style="display:flex;gap:12px;padding:10px 24px;background:var(--earth-100);border-bottom:1px solid var(--earth-200);flex-wrap:wrap;align-items:center">
+    <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:140px">
+      <span style="font-size:11px;font-weight:600;color:var(--earth-500);text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap">Owner</span>
+      <input value="${esc(sc.owner)}" placeholder="[Name]" onchange="scField(${ti},'owner',this.value)" style="flex:1;background:var(--bg-primary);border:1px solid var(--earth-200);color:var(--text-primary);padding:5px 10px;border-radius:6px;font-size:13px;font-family:var(--font);min-width:0"/>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:140px">
+      <span style="font-size:11px;font-weight:600;color:var(--earth-500);text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap">Tech lead</span>
+      <input value="${esc(sc.lead1)}" placeholder="[Name]" onchange="scField(${ti},'lead1',this.value)" style="flex:1;background:var(--bg-primary);border:1px solid var(--earth-200);color:var(--text-primary);padding:5px 10px;border-radius:6px;font-size:13px;font-family:var(--font);min-width:0"/>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:140px">
+      <span style="font-size:11px;font-weight:600;color:var(--earth-500);text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap">Report date</span>
+      <input type="date" value="${esc(sc.reportDate)}" onchange="scField(${ti},'reportDate',this.value)" style="flex:1;background:var(--bg-primary);border:1px solid var(--earth-200);color:var(--text-primary);padding:5px 10px;border-radius:6px;font-size:13px;font-family:var(--font);min-width:0"/>
+    </div>
+  </div>`;
+
+  // Indicators
+  h+=`<div class="sc-indicators">`;
+  INDICATORS.forEach(ind=>{
+    const val=sc.indicators[ind]||'N/A';
+    const cls=val==='G'?'sc-ind-g':val==='A'?'sc-ind-a':val==='R'?'sc-ind-r':'sc-ind-na';
+    h+=`<div class="sc-indicator">
+      <span class="sc-indicator-label">${ind}</span>
+      <select class="${cls}" onchange="scIndicator(${ti},'${ind}',this.value);this.className=ragCls(this.value)">
+        ${RAG_OPTIONS.map(o=>`<option value="${o.v}" ${val===o.v?'selected':''}>${o.label}</option>`).join('')}
+      </select>
+    </div>`;
+  });
+  h+=`</div>`;
+
+  // Two-column body
+  h+=`<div class="sc-body">`;
+
+  // Left column
+  h+=`<div class="sc-col-left">
+    <div class="sc-section">
+      <div class="sc-section-hdr">Deploy / Release planning</div>
+      <div class="sc-section-body"><textarea placeholder="Release milestones, deployment windows, rollout strategy..." onchange="scField(${ti},'release',this.value)">${esc(sc.release)}</textarea></div>
+    </div>
+    <div class="sc-section">
+      <div class="sc-section-hdr">Key messages</div>
+      <div class="sc-section-body"><textarea placeholder="Action oriented, bullet format, specific, factual..." onchange="scField(${ti},'messages',this.value)">${esc(sc.messages)}</textarea></div>
+    </div>
+    <div class="sc-section">
+      <div class="sc-section-hdr">Risks &amp; issues</div>
+      <div class="sc-section-body"><textarea placeholder="(R) — Risk description&#10;(I) — Issue description&#10;(D) — Decision needed..." onchange="scField(${ti},'risks',this.value)" style="min-height:90px">${esc(sc.risks)}</textarea></div>
+    </div>
+  </div>`;
+
+  // Right column — action plan table
+  h+=`<div class="sc-col-right">
+    <div class="sc-section">
+      <div class="sc-section-hdr">Action plan</div>
+      <div class="sc-section-body" style="padding:0">
+        <table class="sc-table">
+          <thead><tr>
+            <th style="width:30px">#</th>
+            <th>Project / deliverable</th>
+            <th>Owner</th>
+            <th style="width:55px">Target</th>
+            <th style="width:55px">Status</th>
+          </tr></thead>
+          <tbody>`;
+
+  if(theme.projects.length===0){
+    h+=`<tr><td colspan="5" style="text-align:center;color:var(--earth-500);padding:20px;font-size:12px">No projects yet. Add them in the Roadmap view.</td></tr>`;
+  } else {
+    theme.projects.forEach((p,pi)=>{
+      const stCls=statusClass(p.status||'Not started');
+      h+=`<tr>
+        <td style="color:var(--earth-500);font-weight:600">${pi+1}</td>
+        <td style="font-weight:500">${esc(p.name)}</td>
+        <td>${esc(p.owner||'—')}</td>
+        <td style="font-size:11px">${MONTHS[p.em]}</td>
+        <td><span class="sc-rag ${stCls}">${esc(p.status||'NS')}</span></td>
+      </tr>`;
+    });
+  }
+
+  h+=`</tbody></table>
+      </div>
+    </div>
+  </div>`;
+
+  h+=`</div></div>`;
+  return h;
+}
+
+function scField(ti,field,val){S.themes[ti].sc[field]=val;save()}
+function scIndicator(ti,ind,val){S.themes[ti].sc.indicators[ind]=val;save()}
+function ragCls(v){return v==='G'?'sc-ind-g':v==='A'?'sc-ind-a':v==='R'?'sc-ind-r':'sc-ind-na'}
+
+function pickCI(i){
+  document.getElementById('mtc').value=i;
+  document.querySelectorAll('.color-swatch').forEach((el,idx)=>{el.classList.toggle('active',idx===i)});
+}
+
+function openModal(type){
+  if(type==='addProject'&&S.themes.length===0){openModal('addTheme');return}
+  S.modal=type;render();
+  setTimeout(()=>{const first=document.querySelector('.modal input:not([type=hidden])');if(first)first.focus()},50);
+}
+function closeModal(){S.modal=null;S.editCtx=null;render()}
+
+function addTheme(){
+  const n=document.getElementById('mtn').value.trim();if(!n)return;
+  S.themes.push({id:uid(),name:n,ci:parseInt(document.getElementById('mtc').value)||0,desc:'',projects:[],sc:{indicators:{Scope:'N/A',Schedule:'N/A',Issues:'N/A',Resources:'N/A',Overall:'N/A'},release:'',messages:'',risks:'',owner:'',lead1:'',lead2:'',reportDate:''}});
+  save();closeModal();
+}
+function editTheme(ti){S.editCtx={ti};S.modal='editTheme';render()}
+function saveTheme(ti){
+  const n=document.getElementById('mtn').value.trim();if(!n)return;
+  S.themes[ti].name=n;
+  S.themes[ti].ci=parseInt(document.getElementById('mtc').value)||0;
+  const d=document.getElementById('mtd');if(d)S.themes[ti].desc=d.value;
+  save();closeModal();
+}
+function delTheme(ti){S.themes.splice(ti,1);save();closeModal()}
+
+function addProject(){
+  const n=document.getElementById('mpn').value.trim();if(!n)return;
+  const ti=parseInt(document.getElementById('mpt').value)||0;
+  const sm=parseInt(document.getElementById('mps').value)||0;
+  const em=parseInt(document.getElementById('mpe').value)||2;
+  S.themes[ti].projects.push({id:uid(),name:n,desc:document.getElementById('mpd').value,sm:Math.min(sm,em),em:Math.max(sm,em),status:document.getElementById('mpst').value,owner:document.getElementById('mpo').value});
+  save();closeModal();
+}
+function editProject(ti,pi){S.editCtx={ti,pi};S.modal='editProject';render()}
+function saveProject(ti,pi){
+  const n=document.getElementById('mpn').value.trim();if(!n)return;
+  const nti=parseInt(document.getElementById('mpt').value)||0;
+  const sm=parseInt(document.getElementById('mps').value)||0;
+  const em=parseInt(document.getElementById('mpe').value)||2;
+  const p=S.themes[ti].projects[pi];
+  p.name=n;p.desc=document.getElementById('mpd').value;p.sm=Math.min(sm,em);p.em=Math.max(sm,em);
+  p.status=document.getElementById('mpst').value;p.owner=document.getElementById('mpo').value;
+  if(nti!==ti){S.themes[ti].projects.splice(pi,1);S.themes[nti].projects.push(p)}
+  save();closeModal();
+}
+function delProject(ti,pi){S.themes[ti].projects.splice(pi,1);save();closeModal()}
+function quickStatus(ti,pi,val){S.themes[ti].projects[pi].status=val;save();render()}
+
+function importFile(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const d=JSON.parse(ev.target.result);
+      if(d.themes){S.themes=d.themes;S.year=d.year||2026;S.showExport=false;save();render()}
+    }catch(err){alert('Could not read file — make sure it\'s a valid roadmap JSON.')}
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+function saveFile(){
+  const data=JSON.stringify({themes:S.themes,year:S.year},null,2);
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`roadmap-${S.year}-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+function publishSnapshot(){
+  const payload=JSON.stringify({themes:S.themes,year:S.year});
+  const escaped=payload.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/<\//g,'<\\/');
+  let src=document.documentElement.outerHTML;
+  const marker='load();render();';
+  const seed=`\n/* SNAPSHOT DATA */\ntry{const _snap=JSON.parse('${escaped}');S.themes=_snap.themes||[];S.year=_snap.year||2026;S.themes.forEach(function(t){if(!t.sc)t.sc={indicators:{Scope:'N/A',Schedule:'N/A',Issues:'N/A',Resources:'N/A',Overall:'N/A'},release:'',messages:'',risks:'',owner:'',lead1:'',reportDate:''};});save();}catch(e){}\n`;
+  src=src.replace(marker,seed+marker);
+  src='<!DOCTYPE html>\n<html lang="en">'+src.slice(src.indexOf('<head'));
+  const blob=new Blob([src],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`roadmap-snapshot-${S.year}-${new Date().toISOString().slice(0,10)}.html`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+// Drag
+function dragStart(e,ti,pi,mode){
+  e.preventDefault();
+  const r=document.getElementById(`tl-${ti}-${pi}`).getBoundingClientRect();
+  const p=S.themes[ti].projects[pi];
+  S.drag={ti,pi,mode,sx:e.clientX,os:p.sm,oe:p.em,tl:r.left,tw:r.width};
+  document.addEventListener('mousemove',onDrag);document.addEventListener('mouseup',endDrag);
+}
+function dragStartT(e,ti,pi,mode){
+  e.preventDefault();const t=e.touches[0];
+  const r=document.getElementById(`tl-${ti}-${pi}`).getBoundingClientRect();
+  const p=S.themes[ti].projects[pi];
+  S.drag={ti,pi,mode,sx:t.clientX,os:p.sm,oe:p.em,tl:r.left,tw:r.width};
+  document.addEventListener('touchmove',onDragT,{passive:false});document.addEventListener('touchend',endDragT);
+}
+function onDrag(e){doDrag(e.clientX)}
+function onDragT(e){e.preventDefault();doDrag(e.touches[0].clientX)}
+function doDrag(cx){
+  const d=S.drag;if(!d)return;
+  const dm=Math.round(((cx-d.sx)/d.tw)*12);
+  const p=S.themes[d.ti].projects[d.pi];
+  if(d.mode==='move'){
+    let ns=d.os+dm,ne=d.oe+dm,sp=ne-ns;
+    if(ns<0){ns=0;ne=sp}if(ne>11){ne=11;ns=11-sp}
+    p.sm=Math.max(0,ns);p.em=Math.min(11,ne);
+  }else if(d.mode==='left'){
+    p.sm=Math.max(0,Math.min(d.oe,d.os+dm));
+  }else{
+    p.em=Math.min(11,Math.max(d.os,d.oe+dm));
+  }
+  render();
+}
+function endDrag(){document.removeEventListener('mousemove',onDrag);document.removeEventListener('mouseup',endDrag);S.drag=null;save()}
+function endDragT(){document.removeEventListener('touchmove',onDragT);document.removeEventListener('touchend',endDragT);S.drag=null;save()}
+
+load();render();
+</script>
+</body>
+</html>
